@@ -1,13 +1,25 @@
 package com.hippo;
 
-import com.hippo.objects.Player;
-import com.hippo.objects.Pokemon;
-import com.hippo.objects.Team;
+import com.hippo.enums.PairingStatus;
+import com.hippo.objects.rk9.*;
+import com.hippo.objects.stats.usage.SinglePokemonUsage;
+import com.hippo.utils.rk9.GetData;
+import com.hippo.utils.rk9.WriteData;
+import com.hippo.utils.stats.team.SearchTeam;
+import com.hippo.utils.stats.usage.GetUsage;
+import com.hippo.utils.stats.usage.WriteUsage;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Unit test for simple App.
@@ -44,8 +56,7 @@ public class AppTest
     // Test for getTeam method in App class
     public void testGetTeam() {
         String url = "https://rk9.gg/teamlist/public/WCS02wi0zpmUDdrwWkd1/9bMC6A6RpFDm3wD5GVDY";
-        App app = new App();
-        Team team = app.getTeam(url);
+        Team team = GetData.getTeam(url);
         Pokemon[] pokemons = team.getPokemons();
 
         assertEquals("Miraidon", pokemons[0].getName());
@@ -79,12 +90,10 @@ public class AppTest
     // Test for getPlayers method in App class
     public void testGetPlayers() {
         String url = "https://rk9.gg/roster/WCS02wi0zpmUDdrwWkd1";
-        App app = new App();
-        List<Player> players = app.getPlayers(url);
+        GetData getData = new GetData();
+        List<Player> players = getData.getPlayers(url);
 
-        assertEquals("Brendan", players.get(0).getFirstname());
-        assertEquals("Zheng", players.get(0).getLastname());
-        assertEquals("US", players.get(0).getCountry());
+        assertEquals("Brendan Zheng [US]", players.get(0).getName());
         assertEquals("Incineroar", players.get(0).getTeam().getPokemons()[0].getName());
         assertEquals("Bug", players.get(0).getTeam().getPokemons()[0].getType());
         assertEquals("Intimidate", players.get(0).getTeam().getPokemons()[0].getAbility());
@@ -93,5 +102,101 @@ public class AppTest
         assertEquals("Knock Off", players.get(0).getTeam().getPokemons()[0].getMoves().get(1));
         assertEquals("Parting Shot", players.get(0).getTeam().getPokemons()[0].getMoves().get(2));
         assertEquals("Flare Blitz", players.get(0).getTeam().getPokemons()[0].getMoves().get(3));
+    }
+
+    // Test for getNumberOfRounds method in App class
+    public void testGetNumberOfRounds() {
+        String url = "WCS02wi0zpmUDdrwWkd1";
+        int numberOfRounds = GetData.getNumberOfRound(url);
+
+        assertEquals(16, numberOfRounds);
+    }
+
+    // Test for getPairingsForRound method in App class
+    public void testGetPairingsForRound() {
+        String url = "WCS02wi0zpmUDdrwWkd1";
+        int round = 15;
+        List<Pairing> pairings = GetData.getPairingsForRound(url, round);
+        assertEquals(pairings.get(0).getPlayer1(), "Michael Kelsch [DE]");
+        assertEquals(pairings.get(0).getPlayer2(), "Yuta Ishigaki [JP]");
+        assertEquals(pairings.get(0).getStatus(), PairingStatus.PLAYER2_WON);
+        assertEquals(pairings.get(1).getPlayer1(), "Luca Ceribelli [IT]");
+        assertEquals(pairings.get(1).getPlayer2(), "SEONG JAE JEONG [KR]");
+        assertEquals(pairings.get(1).getStatus(), PairingStatus.PLAYER1_WON);
+    }
+
+    // Test for writePlayers method in WriteData class
+    /*public void testWritePlayers() {
+        String url = "WCS02wi0zpmUDdrwWkd1";
+        GetData getData = new GetData();
+        List<Player> players = getData.getPlayers(url);
+        WriteData.writePlayers(players);
+    }*/
+
+    /*public void testWritePairings() {
+        String url = "WCS02wi0zpmUDdrwWkd1";
+        List<List<Pairing>> allPairings = GetData.getPairings(url);
+        System.out.println(allPairings.size());
+        WriteData.writePairings(allPairings);
+    }*/
+
+    public void testWriteUsage() {
+        GetUsage getUsage = new GetUsage();
+        String name = "2024_Pokémon_VGC_World_Championship";
+        List<SinglePokemonUsage> pokemonUsage = getUsage.readUsageData(name+".json");
+        WriteUsage.writeUsage(pokemonUsage, name);
+    }
+
+    public void testGetTournamentInfos(){
+        String url = "WCS02wi0zpmUDdrwWkd1";
+        String fullURL = "https://rk9.gg/tournament/" + url;
+        try {
+            Document doc = Jsoup.connect(fullURL).get();
+            // Trouver le nom du tournoi dans la balise h3 avec la classe "mb-0" en supprimant le contenu de la balise "small" (inclu dans h3)
+            String name = doc.select("h3.mb-0").first().ownText();
+            System.out.println(name);
+
+            // Trouver les dates du tournoi dans la balise small dans la balise h3 avec la classe "my-0 px-3"
+            String date = doc.select("h3.mb-0 small").first().text();
+
+            // Convertir la String (ex: "August 16-18, 2024") en deux Date au format "dd/MM/yyyy"
+            String[] parts = date.split(" ", 2);
+            String[] days = parts[1].split("-", 2);
+
+            String startDateStr = parts[0] + " " + days[0] + ", " + days[1].split(",")[1].trim();
+            String endDateStr = parts[0] + " " + days[1];
+
+            System.out.println(startDateStr);
+            System.out.println(endDateStr);
+
+            SimpleDateFormat formatter = new SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH);
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+
+            Date startDate = formatter.parse(startDateStr);
+            Date endDate = formatter.parse(endDateStr);
+
+            System.out.println(outputFormat.format(startDate));
+            System.out.println(outputFormat.format(endDate));
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void testWriteTournament() {
+        String url = "WCS02wi0zpmUDdrwWkd1";
+        Tournament tournament = GetData.createTournament(url);
+        WriteData.writeTournament(tournament);
+    }
+
+    // Test searchTeams method in SearchTeam class
+    public void testSearchTeams(){
+        SearchTeam searchTeam = new SearchTeam();
+        List<Pokemon> pokemons = List.of(
+                new Pokemon("Urshifu [Rapid Strike Style]", "Stellar", "Unseen Fist", "Focus Sash", List.of("Protect", "Surging Strikes", "Close Combat", "Taunt"))
+        );
+        List<Team> teams = searchTeam.searchTeams("2024_Pokémon_VGC_World_Championship.json", pokemons);
     }
 }

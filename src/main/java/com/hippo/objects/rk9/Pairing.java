@@ -1,29 +1,35 @@
-package com.hippo.objects;
+package com.hippo.objects.rk9;
 
 import com.hippo.enums.PairingStatus;
 
 public class Pairing {
 
-    private Player player1;
-    private Player player2;
+    private String player1;
+    private String player2;
     private PairingStatus status;
+    private boolean isBye;
 
-    public Pairing(Player player1, Player player2) {
+    public Pairing(String player1, String player2, PairingStatus status, boolean isBye) {
         this.player1 = player1;
         this.player2 = player2;
-        this.status = PairingStatus.NOT_STARTED;
+        this.status = status;
+        this.isBye = isBye;
     }
 
-    public Player getPlayer1() {
+    public String getPlayer1() {
         return player1;
     }
 
-    public Player getPlayer2() {
+    public String getPlayer2() {
         return player2;
     }
 
     public PairingStatus getStatus() {
         return status;
+    }
+
+    public boolean isBye() {
+        return isBye;
     }
 
     public void setStatus(PairingStatus status) {

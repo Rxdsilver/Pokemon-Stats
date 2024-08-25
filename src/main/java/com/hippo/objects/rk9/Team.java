@@ -1,4 +1,4 @@
-package com.hippo.objects;
+package com.hippo.objects.rk9;
 
 public class Team {
     Pokemon[] pokemons;
