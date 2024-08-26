@@ -195,8 +195,14 @@ public class AppTest
     public void testSearchTeams(){
         SearchTeam searchTeam = new SearchTeam();
         List<Pokemon> pokemons = List.of(
-                new Pokemon("Urshifu [Rapid Strike Style]", "Stellar", "Unseen Fist", "Focus Sash", List.of("Protect", "Surging Strikes", "Close Combat", "Taunt"))
+                new Pokemon("Calyrex [Shadow Rider]", "Fairy", "As One", "Covert Cloak", List.of("Astral Barrage", "Draining Kiss", "Calm Mind", "Protect")),
+                new Pokemon("Clefairy", "Grass", "Friend Guard", "Eviolite", List.of("Follow Me", "Protect", "Helping Hand", "After You"))
         );
-        List<Team> teams = searchTeam.searchTeams("2024_Pokémon_VGC_World_Championship.json", pokemons);
+        List<Player> players = searchTeam.searchTeams("2024_Pokémon_VGC_World_Championship.json", pokemons);
+        List<String> playersName = List.of("Adam Cherfaoui [FR]", "Alban Badin [FR]", "Gauthier Clanet [FR]", "Karl Akpovi [FR]", "Hippolyte Bernard [FR]", "Pierre Coste [FR]");
+        // Vérfier que les joueurs trouvés correspondent bien aux critères de recherche
+        for (String playerName : playersName) {
+            assertTrue(players.stream().anyMatch(player -> player.getName().equals(playerName)));
+        }
     }
 }

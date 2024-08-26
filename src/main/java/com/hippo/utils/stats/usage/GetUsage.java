@@ -9,10 +9,7 @@ import com.hippo.objects.rk9.Tournament;
 import com.hippo.objects.stats.usage.SinglePokemonUsage;
 import java.io.FileReader;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GetUsage {
 
@@ -37,19 +34,19 @@ public class GetUsage {
                             found = true;
 
                             // Ajouter les autres informations du pokemon
-                            Map<String, Integer> tera = singlePokemonUsage.getTera();
+                            LinkedHashMap<String, Integer> tera = singlePokemonUsage.getTera();
                             tera.put(pokemon.getType(), tera.getOrDefault(pokemon.getType(), 0) + 1);
                             singlePokemonUsage.setTera(tera);
 
-                            Map<String, Integer> item = singlePokemonUsage.getItem();
+                            LinkedHashMap<String, Integer> item = singlePokemonUsage.getItem();
                             item.put(pokemon.getItem(), item.getOrDefault(pokemon.getItem(), 0) + 1);
                             singlePokemonUsage.setItem(item);
 
-                            Map<String, Integer> ability = singlePokemonUsage.getAbility();
+                            LinkedHashMap<String, Integer> ability = singlePokemonUsage.getAbility();
                             ability.put(pokemon.getAbility(), ability.getOrDefault(pokemon.getAbility(), 0) + 1);
                             singlePokemonUsage.setAbility(ability);
 
-                            Map<String, Integer> moves = singlePokemonUsage.getMoves();
+                            LinkedHashMap<String, Integer> moves = singlePokemonUsage.getMoves();
                             for (String move : pokemon.getMoves()) {
                                 moves.put(move, moves.getOrDefault(move, 0) + 1);
                             }
@@ -58,13 +55,13 @@ public class GetUsage {
                         }
                     }
                     if (!found) {
-                        Map<String, Integer> tera = new HashMap<>();
+                        LinkedHashMap<String, Integer> tera = new LinkedHashMap<>();
                         tera.put(pokemon.getType(), 1);
-                        Map<String, Integer> item = new HashMap<>();
+                        LinkedHashMap<String, Integer> item = new LinkedHashMap<>();
                         item.put(pokemon.getItem(), 1);
-                        Map<String, Integer> ability = new HashMap<>();
+                        LinkedHashMap<String, Integer> ability = new LinkedHashMap<>();
                         ability.put(pokemon.getAbility(), 1);
-                        Map<String, Integer> moves = new HashMap<>();
+                        LinkedHashMap<String, Integer> moves = new LinkedHashMap<>();
                         for (String move : pokemon.getMoves()) {
                             moves.put(move, 1);
                         }

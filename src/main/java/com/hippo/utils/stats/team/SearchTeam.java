@@ -6,7 +6,6 @@ import com.hippo.objects.rk9.Player;
 import com.hippo.objects.rk9.Pokemon;
 import com.hippo.objects.rk9.Team;
 import com.hippo.objects.rk9.Tournament;
-import com.hippo.objects.stats.usage.SinglePokemonUsage;
 
 import java.io.FileReader;
 import java.lang.reflect.Type;
@@ -15,70 +14,70 @@ import java.util.List;
 
 public class SearchTeam {
 
-    public List<Team> getTeamsFromJSON(String path) {
+    public static List<Player> getTeamsFromJSON(String path) {
         // Charger les données du fichier JSON
-
         Gson gson = new Gson();
         Type tournamentType = new TypeToken<Tournament>(){}.getType();
-        List<Team> teams = new ArrayList<>();
 
         try (FileReader reader = new FileReader(path)) {
             Tournament tournament = gson.fromJson(reader, tournamentType);
-            for (Player player : tournament.getPlayers()) {
-                teams.add(player.getTeam());
-            }
+            return tournament.getPlayers();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return teams;
+        return new ArrayList<>();
+
     }
 
 
     // Rechercher la ou les équipes qui correspondent aux critères de recherche
-    public List<Team> searchTeams(String path, List<Pokemon> pokemons) {
+    public List<Player> searchTeams(String path, List<Pokemon> pokemons) {
         // Lire les données du fichier JSON combiné
-        List<Team> teamsFromJSON = getTeamsFromJSON(path);
-        List<Team> teams = new ArrayList<>();
+        List<Player> playersFromJSON = getTeamsFromJSON(path);
+        List<Player> players = new ArrayList<>();
 
         int count = 0;
 
-        for (Team team : teamsFromJSON) {
+        for (Player player : playersFromJSON){
+            Team team = player.getTeam();
             boolean found = true;
             for (Pokemon pokemon : pokemons) {
                 boolean foundPokemon = false;
                 for (Pokemon teamPokemon : team.getPokemons()) {
                     if (pokemon.getName().equals(teamPokemon.getName())) {
                         foundPokemon = true;
+                        // Si le type, l'ability et l'item sont spécifiés, vérifier si le pokemon a ces attributs
                         if (pokemon.getType()!=null && !pokemon.getType().equals(teamPokemon.getType())) {
                             found = false;
                             break;
                         }
+
                         if (pokemon.getAbility()!=null && !pokemon.getAbility().equals(teamPokemon.getAbility())) {
                             found = false;
                             break;
                         }
+
                         if (pokemon.getItem()!=null && !pokemon.getItem().equals(teamPokemon.getItem())) {
                             found = false;
                             break;
                         }
+
+                        // Si des moves sont spécifiés, vérifier que le Pokémon possède au moins tous les moves spécifiés
                         if (pokemon.getMoves()!=null) {
-                            // Chercher si le move est dans la liste des moves du pokemon
-                            boolean foundMove = true;
+                            boolean foundMoves = true;
                             for (String move : pokemon.getMoves()) {
                                 if (!teamPokemon.getMoves().contains(move)) {
-                                    foundMove = false;
+                                    foundMoves = false;
                                     break;
                                 }
                             }
-                            if (foundMove) {
-                                found = true;
-                                break;
-                            } else {
+                            if (!foundMoves) {
                                 found = false;
                                 break;
                             }
                         }
+
                         break;
                     }
                 }
@@ -88,7 +87,7 @@ public class SearchTeam {
                 }
             }
             if (found) {
-                teams.add(team);
+                players.add(player);
                 count++;
             }
         }
@@ -97,7 +96,24 @@ public class SearchTeam {
             System.out.println("No team found with the given criteria.");
         } else {
             System.out.println(count + " teams found with the given criteria.");
+            for (Player player : players) {
+                System.out.println(player.getName());
+            }
         }
-        return teams;
+        return players;
+    }
+
+    public static Team searchTeamWithPlayerName(String path, String playerName) {
+        // Lire les données du fichier JSON combiné
+        List<Player> players = getTeamsFromJSON(path);
+        Team team = null;
+
+        for (Player p : players) {
+            if (p.getName().equals(playerName)) {
+                return p.getTeam();
+            }
+        }
+        System.out.println("No team found with the given player name.");
+        return team;
     }
 }
