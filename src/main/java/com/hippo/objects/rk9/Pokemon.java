@@ -9,6 +9,8 @@ public class Pokemon {
     private String item;
     private List<String> moves;
 
+    public Pokemon() {}
+
     public Pokemon(String name, String type, String ability, String item, List<String> moves) {
         this.name = name;
         this.type = type;
