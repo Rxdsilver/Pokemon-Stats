@@ -1,35 +1,74 @@
 package com.hippo.controller;
 
-import com.hippo.objects.stats.usage.SinglePokemonUsage;
-import com.hippo.utils.stats.usage.GetUsage;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.hippo.objects.rk9.Tournament;
+import com.hippo.repository.TournamentRepository;
+import com.hippo.utils.rk9.GetData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api/tournaments")
 public class TournamentController {
 
-    @GetMapping("api/tournament")
-    public List<SinglePokemonUsage> getUsage() {
+    @Autowired
+    private TournamentRepository tournamentRepository; // Injection du repository
 
-        GetUsage getUsage = new GetUsage();
-        List<SinglePokemonUsage> usage = getUsage.readUsageData("2024_Pokémon_VGC_World_Championship.json");
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createTournament(@RequestBody String rk9) {
+        // Vérifie si un tournoi avec le même rk9 existe déjà
+        Optional<Tournament> existingTournament = tournamentRepository.findByRk9(rk9);
+        if (existingTournament.isPresent()) {
+            // Retourne un statut 409 Conflict si un tournoi existe déjà
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Collections.singletonMap("error", "A tournament with the same RK9 already exists."));
+        }
 
-        // Ensure data is sorted just before returning
-        usage.sort((o1, o2) -> o2.getUsage() - o1.getUsage());
+        // Crée un tournoi à partir des données rk9
+        Tournament tournament = GetData.createTournament(rk9);
 
-        usage.forEach(singlePokemonUsage -> {
-            singlePokemonUsage.setMoves(sortByValue(singlePokemonUsage.getMoves()));
-            singlePokemonUsage.setTera(sortByValue(singlePokemonUsage.getTera()));
-            singlePokemonUsage.setItem(sortByValue(singlePokemonUsage.getItem()));
-            singlePokemonUsage.setAbility(sortByValue(singlePokemonUsage.getAbility()));
-        });
+        // Enregistre le tournoi dans la base de données MongoDB
+        tournamentRepository.save(tournament);
 
-        return usage; // This will be automatically converted to JSON and returned
+        // Prépare les données pour la réponse JSON
+        Map<String, Object> tournamentData = new LinkedHashMap<>();
+        tournamentData.put("name", tournament.getName());
+        tournamentData.put("rk9", tournament.getRk9());
+        tournamentData.put("startDate", tournament.getStartDate());
+        tournamentData.put("endDate", tournament.getEndDate());
+        tournamentData.put("rounds", tournament.getRounds());
+        tournamentData.put("players", tournament.getPlayers());
+
+        // Retourne une réponse 201 Created avec les données du tournoi
+        return ResponseEntity.status(HttpStatus.CREATED).body(tournamentData);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Tournament>> getTournaments(@RequestParam(required = false) String name){
+        List<Tournament> tournaments;
+        if (name != null) {
+            tournaments = tournamentRepository.findByName(name);
+        } else {
+            tournaments = tournamentRepository.findAll();
+        }
+        return ResponseEntity.ok(tournaments);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Tournament> getTournament(@PathVariable("id") String id) {
+        return tournamentRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTournament(@PathVariable("id") String id) {
+        tournamentRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 
     private <K> LinkedHashMap<K, Integer> sortByValue(Map<K, Integer> map) {

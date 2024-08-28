@@ -186,7 +186,7 @@ public class AppTest
     }
 
     public void testWriteTournament() {
-        String url = "WCS02wi0zpmUDdrwWkd1";
+        String url = "EU02whGbj7Vqpe87mRZT";
         Tournament tournament = GetData.createTournament(url);
         WriteData.writeTournament(tournament);
     }

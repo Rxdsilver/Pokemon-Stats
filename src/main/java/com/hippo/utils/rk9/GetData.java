@@ -22,19 +22,25 @@ public class GetData {
         try {
             Document doc = Jsoup.connect(fullURL).get();
             Elements rows = doc.select("table tbody tr");
+            int count = 0;
             for (Element row : rows) {
                 Elements cols = row.select("td");
+                Team team;
 
                 String name = cols.get(1).text() + " " + cols.get(2).text() + " [" + cols.get(3).text()+"]";
-                // Assuming the team data is in the 4th column and needs to be parsed separately
-                String teamUrl = cols.get(6).select("a").attr("href");
-                if (!teamUrl.startsWith("http")) {
-                    teamUrl = "https://rk9.gg" + teamUrl; // Si l'URL est relative, la compléter
+                try {
+                    String teamUrl = cols.get(6).select("a").attr("href");
+                    team = getTeam(teamUrl);
+                    if (cols.get(4).text().equalsIgnoreCase("masters")){
+                        players.add(new Player(name, team));
+                        count++;
+                    }
+                } catch (Exception e) {
+                    System.out.println(count + " players added.");
+                    System.out.println("Error: " + e + " for player " + name);
+
                 }
-                Team team = getTeam(teamUrl);
-                if (cols.get(4).text().equalsIgnoreCase("masters")){
-                    players.add(new Player(name, team));
-                }
+
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -44,6 +50,9 @@ public class GetData {
 
     public static Team getTeam(String url) {
         try {
+            if (!url.startsWith("http")) {
+                url = "https://rk9.gg" + url;
+            }
             Document doc = Jsoup.connect(url).get();
             Elements pokemonDivs = doc.select("div#lang-EN div.pokemon.bg-light-green-50.p-3");
             Pokemon[] pokemons = new Pokemon[pokemonDivs.size()];
@@ -167,7 +176,7 @@ public class GetData {
         return pairings;
     }
 
-        public static Tournament createTournament (String url) {
+    public static Tournament createTournament (String url) {
         List<Player> players = getPlayers(url);
         List<List<Pairing>> pairings = getPairings(url);
 
@@ -195,7 +204,7 @@ public class GetData {
             Date endDate = formatter.parse(endDateStr);
 
 
-            return new Tournament(name, outputFormat.format(startDate), outputFormat.format(endDate), pairings, players);
+            return new Tournament(name, url, outputFormat.format(startDate), outputFormat.format(endDate), pairings, players);
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
