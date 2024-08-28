@@ -8,6 +8,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,10 +19,17 @@ import java.util.Locale;
 
 public class GetData {
     public static List<Player> getPlayers(String url) {
+
+
         String fullURL = "https://rk9.gg/roster/" + url;
+
+
         List<Player> players = new ArrayList<>();
         try {
-            Document doc = Jsoup.connect(fullURL).get();
+            Document doc = Jsoup.connect(fullURL).maxBodySize(0).get();
+            // Ecrire tout le contenu de l'url dans un fichier html
+            // Files.write(Paths.get("roster.html"), doc.html().getBytes());
+
             Elements rows = doc.select("table tbody tr");
             int count = 0;
             for (Element row : rows) {
@@ -29,7 +38,7 @@ public class GetData {
 
                 String name = cols.get(1).text() + " " + cols.get(2).text() + " [" + cols.get(3).text()+"]";
                 try {
-                    String teamUrl = cols.get(6).select("a").attr("href");
+                    String teamUrl = cols.select("a").attr("href");
                     team = getTeam(teamUrl);
                     if (cols.get(4).text().equalsIgnoreCase("masters")){
                         players.add(new Player(name, team));
@@ -38,7 +47,7 @@ public class GetData {
                 } catch (Exception e) {
                     System.out.println(count + " players added.");
                     System.out.println("Error: " + e + " for player " + name);
-
+                    System.out.println("Row: \n"+row.text());
                 }
 
             }

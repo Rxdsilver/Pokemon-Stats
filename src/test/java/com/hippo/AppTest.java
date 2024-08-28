@@ -178,15 +178,13 @@ public class AppTest
             System.out.println(outputFormat.format(startDate));
             System.out.println(outputFormat.format(endDate));
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ParseException e) {
+        } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void testWriteTournament() {
-        String url = "EU02whGbj7Vqpe87mRZT";
+        String url = "NA02mtILnc5ycfC7jXkD";
         Tournament tournament = GetData.createTournament(url);
         WriteData.writeTournament(tournament);
     }
