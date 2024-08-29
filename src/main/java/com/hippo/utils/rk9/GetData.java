@@ -64,7 +64,7 @@ public class GetData {
             }
             Document doc = Jsoup.connect(url).get();
             Elements pokemonDivs = doc.select("div#lang-EN div.pokemon.bg-light-green-50.p-3");
-            Pokemon[] pokemons = new Pokemon[pokemonDivs.size()];
+            List<Pokemon> pokemons = new ArrayList<>();
             int index = 0;
             for (Element pokemonDiv : pokemonDivs) {
                 // Extraire tout le texte brut du div
@@ -85,7 +85,7 @@ public class GetData {
                     moves.add(moveElement.text());
                 }
 
-                pokemons[index++] = new Pokemon(name, type, ability, item, moves);
+                pokemons.set(index++, new Pokemon(name, type, ability, item, moves));
             }
             return new Team(pokemons);
         } catch (IOException e) {

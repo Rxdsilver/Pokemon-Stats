@@ -1,26 +1,22 @@
 package com.hippo.objects.rk9;
 
-public class Team {
-    Pokemon[] pokemons;
+import java.util.List;
 
-    public Team(Pokemon[] pokemons) {
+public class Team {
+    List<Pokemon> pokemons;
+
+    public Team(List<Pokemon> pokemons)  {
         this.pokemons = pokemons;
     }
 
-    public Pokemon[] getPokemons() {
+    public List<Pokemon> getPokemons() {
         return pokemons;
     }
 
-    public void setPokemons(Pokemon[] pokemons) {
+    public void setPokemons(List<Pokemon> pokemons) {
         this.pokemons = pokemons;
     }
 
-    public void setPokemon(int index, Pokemon pokemon) {
-        this.pokemons[index] = pokemon;
-    }
 
-    public Pokemon getPokemon(int index) {
-        return this.pokemons[index];
-    }
 
 }

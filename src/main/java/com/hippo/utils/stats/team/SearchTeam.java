@@ -32,76 +32,79 @@ public class SearchTeam {
 
 
     // Rechercher la ou les équipes qui correspondent aux critères de recherche
-    public List<Player> searchTeams(String path, List<Pokemon> pokemons) {
-        // Lire les données du fichier JSON combiné
-        List<Player> playersFromJSON = getTeamsFromJSON(path);
+    public List<Player> searchTeams(List<Tournament> tournaments, List<Pokemon> pokemons) {
         List<Player> players = new ArrayList<>();
 
-        int count = 0;
+        for (Tournament tournament : tournaments) {
+            List<Player> playersFromTournament = tournament.getPlayers();
 
-        for (Player player : playersFromJSON){
-            Team team = player.getTeam();
-            boolean found = true;
-            for (Pokemon pokemon : pokemons) {
-                boolean foundPokemon = false;
-                for (Pokemon teamPokemon : team.getPokemons()) {
-                    if (pokemon.getName().equals(teamPokemon.getName())) {
-                        foundPokemon = true;
-                        // Si le type, l'ability et l'item sont spécifiés, vérifier si le pokemon a ces attributs
-                        if (pokemon.getType()!=null && !pokemon.getType().equals(teamPokemon.getType())) {
-                            found = false;
+            for (Player player : playersFromTournament) {
+                Team team = player.getTeam();
+                boolean found = true;
+
+                for (Pokemon pokemon : pokemons) {
+                    boolean foundPokemon = false;
+
+                    for (Pokemon teamPokemon : team.getPokemons()) {
+                        if (matchesCriteria(pokemon, teamPokemon)) {
+                            foundPokemon = true;
                             break;
                         }
+                    }
 
-                        if (pokemon.getAbility()!=null && !pokemon.getAbility().equals(teamPokemon.getAbility())) {
-                            found = false;
-                            break;
-                        }
-
-                        if (pokemon.getItem()!=null && !pokemon.getItem().equals(teamPokemon.getItem())) {
-                            found = false;
-                            break;
-                        }
-
-                        // Si des moves sont spécifiés, vérifier que le Pokémon possède au moins tous les moves spécifiés
-                        if (pokemon.getMoves()!=null) {
-                            boolean foundMoves = true;
-                            for (String move : pokemon.getMoves()) {
-                                if (!teamPokemon.getMoves().contains(move)) {
-                                    foundMoves = false;
-                                    break;
-                                }
-                            }
-                            if (!foundMoves) {
-                                found = false;
-                                break;
-                            }
-                        }
-
+                    if (!foundPokemon) {
+                        found = false;
                         break;
                     }
                 }
-                if (!foundPokemon) {
-                    found = false;
-                    break;
+
+                if (found) {
+                    players.add(player);
                 }
-            }
-            if (found) {
-                players.add(player);
-                count++;
             }
         }
 
-        if (count == 0) {
+        if (players.isEmpty()) {
             System.out.println("No team found with the given criteria.");
         } else {
-            System.out.println(count + " teams found with the given criteria.");
+            System.out.println(players.size() + " teams found with the given criteria.");
             for (Player player : players) {
                 System.out.println(player.getName());
             }
         }
+
         return players;
     }
+
+    // Méthode pour vérifier si un Pokémon dans l'équipe correspond aux critères
+    private boolean matchesCriteria(Pokemon criteria, Pokemon teamPokemon) {
+        if (!criteria.getName().equals(teamPokemon.getName())) {
+            return false;
+        }
+
+        if (criteria.getType() != null && !criteria.getType().equals(teamPokemon.getType())) {
+            return false;
+        }
+
+        if (criteria.getAbility() != null && !criteria.getAbility().equals(teamPokemon.getAbility())) {
+            return false;
+        }
+
+        if (criteria.getItem() != null && !criteria.getItem().equals(teamPokemon.getItem())) {
+            return false;
+        }
+
+        if (criteria.getMoves() != null) {
+            for (String move : criteria.getMoves()) {
+                if (!teamPokemon.getMoves().contains(move)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
 
     public static Team searchTeamWithPlayerName(String path, String playerName) {
         // Lire les données du fichier JSON combiné

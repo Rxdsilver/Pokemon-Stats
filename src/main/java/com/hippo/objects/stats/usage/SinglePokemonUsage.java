@@ -1,14 +1,20 @@
 package com.hippo.objects.stats.usage;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.LinkedHashMap;
 
+@Document(collection = "singlePokemonUsage")
 public class SinglePokemonUsage {
+
     private String name;
     private int usage;
     private LinkedHashMap<String, Integer> tera;
     private LinkedHashMap<String, Integer> item;
     private LinkedHashMap<String, Integer> ability;
     private LinkedHashMap<String, Integer> moves;
+
 
     public SinglePokemonUsage(String name, int usage, LinkedHashMap<String, Integer> tera, LinkedHashMap<String, Integer> item, LinkedHashMap<String, Integer> ability, LinkedHashMap<String, Integer> moves) {
         this.name = name;

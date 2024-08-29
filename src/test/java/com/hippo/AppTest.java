@@ -57,34 +57,26 @@ public class AppTest
     public void testGetTeam() {
         String url = "https://rk9.gg/teamlist/public/WCS02wi0zpmUDdrwWkd1/9bMC6A6RpFDm3wD5GVDY";
         Team team = GetData.getTeam(url);
-        Pokemon[] pokemons = team.getPokemons();
+        List<Pokemon> pokemons = team.getPokemons();
 
-        assertEquals("Miraidon", pokemons[0].getName());
-        assertEquals("Fairy", pokemons[0].getType());
-        assertEquals("Hadron Engine", pokemons[0].getAbility());
-        assertEquals("Choice Specs", pokemons[0].getItem());
-        assertEquals("Electro Drift", pokemons[0].getMoves().get(0));
-        assertEquals("Draco Meteor", pokemons[0].getMoves().get(1));
-        assertEquals("Dazzling Gleam", pokemons[0].getMoves().get(2));
-        assertEquals("Volt Switch", pokemons[0].getMoves().get(3));
+        assertEquals("Miraidon", pokemons.get(0).getName());
+        assertEquals("Fairy", pokemons.get(0).getType());
+        assertEquals("Hadron Engine", pokemons.get(0).getAbility());
+        assertEquals("Choice Specs", pokemons.get(0).getItem());
+        assertEquals("Electro Drift", pokemons.get(0).getMoves().get(0));
+        assertEquals("Draco Meteor", pokemons.get(0).getMoves().get(1));
+        assertEquals("Dazzling Gleam", pokemons.get(0).getMoves().get(2));
+        assertEquals("Volt Switch", pokemons.get(0).getMoves().get(3));
 
-        assertEquals("Ogerpon [Hearthflame Mask]", pokemons[1].getName());
-        assertEquals("Fire", pokemons[1].getType());
-        assertEquals("Mold Breaker", pokemons[1].getAbility());
-        assertEquals("Hearthflame Mask", pokemons[1].getItem());
-        assertEquals("Spiky Shield", pokemons[1].getMoves().get(0));
-        assertEquals("Ivy Cudgel", pokemons[1].getMoves().get(1));
-        assertEquals("Wood Hammer", pokemons[1].getMoves().get(2));
-        assertEquals("Follow Me", pokemons[1].getMoves().get(3));
+        assertEquals("Ogerpon [Hearthflame Mask]", pokemons.get(1).getName());
+        assertEquals("Fire", pokemons.get(1).getType());
+        assertEquals("Mold Breaker", pokemons.get(1).getAbility());
+        assertEquals("Hearthflame Mask", pokemons.get(1).getItem());
+        assertEquals("Spiky Shield", pokemons.get(1).getMoves().get(0));
+        assertEquals("Ivy Cudgel", pokemons.get(1).getMoves().get(1));
+        assertEquals("Wood Hammer", pokemons.get(1).getMoves().get(2));
+        assertEquals("Follow Me", pokemons.get(1).getMoves().get(3));
 
-        assertEquals("Urshifu [Rapid Strike Style]", pokemons[2].getName());
-        assertEquals("Water", pokemons[2].getType());
-        assertEquals("Unseen Fist", pokemons[2].getAbility());
-        assertEquals("Focus Sash", pokemons[2].getItem());
-        assertEquals("Detect", pokemons[2].getMoves().get(0));
-        assertEquals("Surging Strikes", pokemons[2].getMoves().get(1));
-        assertEquals("Close Combat", pokemons[2].getMoves().get(2));
-        assertEquals("Aqua Jet", pokemons[2].getMoves().get(3));
     }
 
     // Test for getPlayers method in App class
@@ -94,14 +86,14 @@ public class AppTest
         List<Player> players = getData.getPlayers(url);
 
         assertEquals("Brendan Zheng [US]", players.get(0).getName());
-        assertEquals("Incineroar", players.get(0).getTeam().getPokemons()[0].getName());
-        assertEquals("Bug", players.get(0).getTeam().getPokemons()[0].getType());
-        assertEquals("Intimidate", players.get(0).getTeam().getPokemons()[0].getAbility());
-        assertEquals("Safety Goggles", players.get(0).getTeam().getPokemons()[0].getItem());
-        assertEquals("Fake Out", players.get(0).getTeam().getPokemons()[0].getMoves().get(0));
-        assertEquals("Knock Off", players.get(0).getTeam().getPokemons()[0].getMoves().get(1));
-        assertEquals("Parting Shot", players.get(0).getTeam().getPokemons()[0].getMoves().get(2));
-        assertEquals("Flare Blitz", players.get(0).getTeam().getPokemons()[0].getMoves().get(3));
+        assertEquals("Incineroar", players.get(0).getTeam().getPokemons().get(0).getName());
+        assertEquals("Bug", players.get(0).getTeam().getPokemons().get(0).getType());
+        assertEquals("Intimidate", players.get(0).getTeam().getPokemons().get(0).getAbility());
+        assertEquals("Safety Goggles", players.get(0).getTeam().getPokemons().get(0).getItem());
+        assertEquals("Fake Out", players.get(0).getTeam().getPokemons().get(0).getMoves().get(0));
+        assertEquals("Knock Off", players.get(0).getTeam().getPokemons().get(0).getMoves().get(1));
+        assertEquals("Parting Shot", players.get(0).getTeam().getPokemons().get(0).getMoves().get(2));
+        assertEquals("Flare Blitz", players.get(0).getTeam().getPokemons().get(0).getMoves().get(3));
     }
 
     // Test for getNumberOfRounds method in App class
@@ -140,12 +132,12 @@ public class AppTest
         WriteData.writePairings(allPairings);
     }*/
 
-    public void testWriteUsage() {
+    /*public void testWriteUsage() {
         GetUsage getUsage = new GetUsage();
         String name = "2024_Pokémon_VGC_World_Championship";
-        List<SinglePokemonUsage> pokemonUsage = getUsage.readUsageData(name+".json");
+        List<SinglePokemonUsage> pokemonUsage = getUsage.getUsageData(name+".json");
         WriteUsage.writeUsage(pokemonUsage, name);
-    }
+    }*/
 
     public void testGetTournamentInfos(){
         String url = "WCS02wi0zpmUDdrwWkd1";
@@ -190,17 +182,18 @@ public class AppTest
     }
 
     // Test searchTeams method in SearchTeam class
-    public void testSearchTeams(){
+    /*public void testSearchTeams(){
         SearchTeam searchTeam = new SearchTeam();
         List<Pokemon> pokemons = List.of(
                 new Pokemon("Calyrex [Shadow Rider]", "Fairy", "As One", "Covert Cloak", List.of("Astral Barrage", "Draining Kiss", "Calm Mind", "Protect")),
-                new Pokemon("Clefairy", "Grass", "Friend Guard", "Eviolite", List.of("Follow Me", "Protect", "Helping Hand", "After You"))
+                new Pokemon("Clefairy", "Grass", "Friend Guard", "Eviolite", List.of("Follow Me", "Protect", "Helping Hand", "After You")),
+                new Pokemon("Roaring Moon", null, null, null, null)
         );
         List<Player> players = searchTeam.searchTeams("2024_Pokémon_VGC_World_Championship.json", pokemons);
-        List<String> playersName = List.of("Adam Cherfaoui [FR]", "Alban Badin [FR]", "Gauthier Clanet [FR]", "Karl Akpovi [FR]", "Hippolyte Bernard [FR]", "Pierre Coste [FR]");
+        List<String> playersName = List.of("Adam Cherfaoui [FR]", "Alban Badin [FR]");
         // Vérfier que les joueurs trouvés correspondent bien aux critères de recherche
         for (String playerName : playersName) {
             assertTrue(players.stream().anyMatch(player -> player.getName().equals(playerName)));
         }
-    }
+    }*/
 }

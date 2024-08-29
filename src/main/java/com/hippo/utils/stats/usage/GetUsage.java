@@ -7,21 +7,19 @@ import com.hippo.objects.rk9.Pokemon;
 import com.hippo.objects.rk9.Team;
 import com.hippo.objects.rk9.Tournament;
 import com.hippo.objects.stats.usage.SinglePokemonUsage;
-import java.io.FileReader;
+
 import java.lang.reflect.Type;
 import java.util.*;
 
 public class GetUsage {
 
-    public List<SinglePokemonUsage> readUsageData(String path) {
+    public List<SinglePokemonUsage> getUsageData(List<Tournament> tournaments) {
         // Lire les données du fichier JSON combiné
         Gson gson = new Gson();
         Type tournamentType = new TypeToken<Tournament>(){}.getType();
         List<SinglePokemonUsage> pokemonUsage = new ArrayList<>();
 
-        try (FileReader reader = new FileReader(path)) {
-            Tournament tournament = gson.fromJson(reader, tournamentType);
-
+        for (Tournament tournament : tournaments) {
             // Parcourir tous les joueurs dans le tournoi
             for (Player player : tournament.getPlayers()) {
                 Team team = player.getTeam();
@@ -69,8 +67,6 @@ public class GetUsage {
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return pokemonUsage;

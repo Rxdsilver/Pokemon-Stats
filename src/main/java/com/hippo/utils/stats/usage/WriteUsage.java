@@ -27,7 +27,6 @@ public class WriteUsage {
             });
 
             gson.toJson(usage, writer);
-            System.out.println("Usage data has been written to " + filename + "_USAGE.json");
         } catch (IOException e) {
             e.printStackTrace();
         }
