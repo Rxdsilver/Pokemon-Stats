@@ -17,10 +17,30 @@ public class Pairing {
     }
 
     public String getPlayer1() {
+        // Hotfix for ">TABLE 201 Nicholas> Borghi [US]"
+        if (player1.equals(">TABLE 201 Nicholas> Borghi [US]")) {
+            return "Nicholas Borghi [US]";
+        }
+
+        // Hotfix for "Chuppa Cross IV [US]"
+        if (player1.equals("Chuppa Cross IV [US]")) {
+            return "Chuppa Cross [US]";
+        }
+
         return player1;
     }
 
     public String getPlayer2() {
+        // Hotfix for ">TABLE 201 Nicholas> Borghi [US]"
+        if (player2.equals(">TABLE 201 Nicholas> Borghi [US]")) {
+            return "Nicholas Borghi [US]";
+        }
+
+        // Hotfix for "Chuppa Cross IV [US]"
+        if (player2.equals("Chuppa Cross IV [US]")) {
+            return "Chuppa Cross [US]";
+        }
+
         return player2;
     }
 

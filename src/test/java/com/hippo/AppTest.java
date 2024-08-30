@@ -1,25 +1,21 @@
 package com.hippo;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.hippo.enums.PairingStatus;
 import com.hippo.objects.rk9.*;
-import com.hippo.objects.stats.usage.SinglePokemonUsage;
-import com.hippo.utils.rk9.GetData;
-import com.hippo.utils.rk9.WriteData;
-import com.hippo.utils.stats.team.SearchTeam;
-import com.hippo.utils.stats.usage.GetUsage;
-import com.hippo.utils.stats.usage.WriteUsage;
+import com.hippo.utils.GetData;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Unit test for simple App.
@@ -178,7 +174,22 @@ public class AppTest
     public void testWriteTournament() {
         String url = "NA02mtILnc5ycfC7jXkD";
         Tournament tournament = GetData.createTournament(url);
-        WriteData.writeTournament(tournament);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        // Créer une structure de données pour contenir les informations du tournoi
+        Map<String, Object> tournamentData = new LinkedHashMap<>();
+        tournamentData.put("name", tournament.getName());
+        tournamentData.put("startDate", tournament.getStartDate());
+        tournamentData.put("endDate", tournament.getEndDate());
+        tournamentData.put("players", tournament.getPlayers());
+        tournamentData.put("pairings", tournament.getRounds());
+
+        try (FileWriter writer = new FileWriter(tournament.getName().replace(" ", "_")+".json")) {
+            gson.toJson(tournamentData, writer);
+            System.out.println("Les données du tournoi ont été écrites dans tournament.json");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     // Test searchTeams method in SearchTeam class
