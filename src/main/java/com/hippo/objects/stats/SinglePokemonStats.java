@@ -2,73 +2,31 @@ package com.hippo.objects.stats;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.LinkedHashMap;
-
 @Document(collection = "singlePokemonUsage")
 public class SinglePokemonStats {
 
-    private String name;
     private int usage;
-    private LinkedHashMap<String, Integer> tera;
-    private LinkedHashMap<String, Integer> item;
-    private LinkedHashMap<String, Integer> ability;
-    private LinkedHashMap<String, Integer> moves;
+    private PokemonUsage pokemon;
 
 
-    public SinglePokemonStats(String name, int usage, LinkedHashMap<String, Integer> tera, LinkedHashMap<String, Integer> item, LinkedHashMap<String, Integer> ability, LinkedHashMap<String, Integer> moves) {
-        this.name = name;
+    public SinglePokemonStats(int usage, PokemonUsage pokemon) {
         this.usage = usage;
-        this.tera = tera;
-        this.item = item;
-        this.ability = ability;
-        this.moves = moves;
-    }
-
-    public String getName() {
-        return name;
+        this.pokemon = pokemon;
     }
 
     public int getUsage() {
         return usage;
     }
 
-    public LinkedHashMap<String, Integer> getTera() {
-        return tera;
-    }
-
-    public LinkedHashMap<String, Integer> getItem() {
-        return item;
-    }
-
-    public LinkedHashMap<String, Integer> getAbility() {
-        return ability;
-    }
-
-    public LinkedHashMap<String, Integer> getMoves() {
-        return moves;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public PokemonUsage getPokemon() {
+        return pokemon;
     }
 
     public void setUsage(int usage) {
         this.usage = usage;
     }
 
-    public void setTera(LinkedHashMap<String, Integer> tera) {
-        this.tera = tera;
-    }
-
-    public void setItem(LinkedHashMap<String, Integer> item) {
-        this.item = item;
-    }
-
-    public void setAbility(LinkedHashMap<String, Integer> ability) {
-        this.ability = ability;
-    }
-
-    public void setMoves(LinkedHashMap<String, Integer> moves) {
-        this.moves = moves;
+    public void setPokemon(PokemonUsage pokemon) {
+        this.pokemon = pokemon;
     }
 }

@@ -6,6 +6,7 @@ import com.hippo.objects.HeadToHeadSearchCriteria;
 import com.hippo.objects.OneTeamSearchCriteria;
 import com.hippo.objects.Winrate;
 import com.hippo.objects.rk9.*;
+import com.hippo.objects.stats.MultiplePokemonStats;
 import com.hippo.objects.stats.SinglePokemonStats;
 import com.hippo.repository.TournamentRepository;
 import com.hippo.utils.GetData;
@@ -77,6 +78,40 @@ public class TournamentController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/usage/{num}")
+    public ResponseEntity<List<MultiplePokemonStats>> getUsageForMultiplePokemon(
+            @PathVariable("num") int num,
+            @RequestBody(required = false) DateRange dateRange){
+
+        List<Tournament> tournaments = tournamentRepository.findAll();
+
+        if (dateRange != null) {
+            String startDate = dateRange.getStartDate();
+            String endDate = dateRange.getEndDate();
+
+            tournaments = tournamentRepository.findAll().stream()
+                    .filter(t -> new GetData().isWithinDateRange(t.getStartDate(), startDate, endDate))
+                    .toList();
+        }
+
+        List<MultiplePokemonStats> usage = new GetData().getUsageDataForMultiplePokemon(num, tournaments);
+
+        usage.sort((o1, o2) -> o2.getUsage() - o1.getUsage());
+
+        usage.forEach(multiplePokemonStats -> {
+            multiplePokemonStats.getPokemons().forEach(pokemonUsage -> {
+                pokemonUsage.setMoves(new GetData().sortByValue(pokemonUsage.getMoves()));
+                pokemonUsage.setTera(new GetData().sortByValue(pokemonUsage.getTera()));
+                pokemonUsage.setItem(new GetData().sortByValue(pokemonUsage.getItem()));
+                pokemonUsage.setAbility(new GetData().sortByValue(pokemonUsage.getAbility()));
+            });
+        });
+
+        return ResponseEntity.ok(usage);
+
+    }
+
+
     @GetMapping("/usage")
     public ResponseEntity<List<SinglePokemonStats>> getUsage(
             @RequestParam(required = false) String name,
@@ -88,25 +123,27 @@ public class TournamentController {
             tournaments = tournamentRepository.findAll();
         }
 
-        String startDate = dateRange.getStartDate();
-        String endDate = dateRange.getEndDate();
+        if (dateRange != null) {
+            String startDate = dateRange.getStartDate();
+            String endDate = dateRange.getEndDate();
 
-        // System.out.println("Start Date: " + startDate + " | End Date: " + endDate);
-
-        if (startDate != null && endDate != null) {
             tournaments = tournaments.stream()
                     .filter(t -> new GetData().isWithinDateRange(t.getStartDate(), startDate, endDate))
                     .collect(Collectors.toList());
+        } else {
+            tournaments = tournamentRepository.findAll();
         }
+
+
         List<SinglePokemonStats> usage = new GetData().getUsageData(tournaments);
         usage.sort((o1, o2) -> o2.getUsage() - o1.getUsage());
 
         // Sort each map (moves, tera, item, ability) in descending order
         usage.forEach(singlePokemonStats -> {
-            singlePokemonStats.setMoves(new GetData().sortByValue(singlePokemonStats.getMoves()));
-            singlePokemonStats.setTera(new GetData().sortByValue(singlePokemonStats.getTera()));
-            singlePokemonStats.setItem(new GetData().sortByValue(singlePokemonStats.getItem()));
-            singlePokemonStats.setAbility(new GetData().sortByValue(singlePokemonStats.getAbility()));
+            singlePokemonStats.getPokemon().setMoves(new GetData().sortByValue(singlePokemonStats.getPokemon().getMoves()));
+            singlePokemonStats.getPokemon().setTera(new GetData().sortByValue(singlePokemonStats.getPokemon().getTera()));
+            singlePokemonStats.getPokemon().setItem(new GetData().sortByValue(singlePokemonStats.getPokemon().getItem()));
+            singlePokemonStats.getPokemon().setAbility(new GetData().sortByValue(singlePokemonStats.getPokemon().getAbility()));
         });
 
 
@@ -125,10 +162,6 @@ public class TournamentController {
                 .filter(t -> new GetData().isWithinDateRange(t.getStartDate(), startDate, endDate))
                 .toList();
 
-        for (Tournament tournament : tournaments) {
-            System.out.println(tournament.getName());
-        }
-
         List<Player> players = new ArrayList<>();
 
         int totalWins = 0;
@@ -141,7 +174,6 @@ public class TournamentController {
 
                 if (new GetData().doesTeamMatchCriteria(player.getTeam(), criteria.getPokemons())) {
                     players.add(player);
-                    System.out.println(player.getName()+" in "+tournament.getName());
                 }
             }
 
@@ -186,7 +218,6 @@ public class TournamentController {
         for (Tournament tournament : tournaments) {
             // Ajouter les joueurs du tournoi dont l'équipe correspond aux critères
             for (Player player : tournament.getPlayers()) {
-
                 if (new GetData().doesTeamMatchCriteria(player.getTeam(), criteria.getWinratePokemons())) {
                     players.add(player);
                     // System.out.println(player.getName()+" in "+tournament.getName());
@@ -202,8 +233,11 @@ public class TournamentController {
                         if (pairing.getPlayer1().equals(player.getName())) {
                             // System.out.println("Team matches with "+pairing.getPlayer1());
                             Team oppTeam = new GetData().searchTeamWithPlayerName(tournament.getPlayers(), pairing.getPlayer2());
+                            if (oppTeam == null) {
+                                continue;
+                            }
                             if (new GetData().doesTeamMatchCriteria(oppTeam, criteria.getOpposingPokemons())) {
-                                System.out.println(pairing.getPlayer1()+ " vs. "+pairing.getPlayer2());
+                                // System.out.println(pairing.getPlayer1()+ " vs. "+pairing.getPlayer2());
                                 totalMatches++;
                                 if (pairing.getStatus() == PairingStatus.PLAYER1_WON) {
                                     totalWins++;
@@ -212,8 +246,11 @@ public class TournamentController {
                         } else if (pairing.getPlayer2().equals(player.getName())) {
                             // System.out.println("Team matches with "+pairing.getPlayer2());
                             Team oppTeam = new GetData().searchTeamWithPlayerName(tournament.getPlayers(), pairing.getPlayer1());
+                            if (oppTeam == null) {
+                                continue;
+                            }
                             if (new GetData().doesTeamMatchCriteria(oppTeam, criteria.getOpposingPokemons())) {
-                                System.out.println(pairing.getPlayer2()+ " vs. "+pairing.getPlayer1());
+                                // System.out.println(pairing.getPlayer2()+ " vs. "+pairing.getPlayer1());
                                 totalMatches++;
                                 if (pairing.getStatus() == PairingStatus.PLAYER2_WON) {
                                     totalWins++;

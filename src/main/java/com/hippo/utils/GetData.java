@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.hippo.enums.PairingStatus;
 import com.hippo.objects.rk9.*;
+import com.hippo.objects.stats.Combination;
+import com.hippo.objects.stats.MultiplePokemonStats;
+import com.hippo.objects.stats.PokemonUsage;
 import com.hippo.objects.stats.SinglePokemonStats;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -11,7 +14,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -243,13 +248,16 @@ public class GetData {
     // Méthode pour vérifier si une date est dans la plage spécifiée
     public boolean isWithinDateRange(String tournamentDate, String startDate, String endDate) {
         try {
+
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             LocalDate tournamentStartDate = LocalDate.parse(tournamentDate, formatter);
-            LocalDate start = startDate != null ? LocalDate.parse(startDate, formatter) : LocalDate.MIN;
-            LocalDate end = endDate != null ? LocalDate.parse(endDate, formatter) : LocalDate.MAX;
+            LocalDate start = startDate != null ? LocalDate.parse(startDate, formatter) : null;
+            LocalDate end = endDate != null ? LocalDate.parse(endDate, formatter) : null;
 
-            boolean isWithinRange = !tournamentStartDate.isBefore(start) && !tournamentStartDate.isAfter(end);
-            // System.out.println("Tournament Date: " + tournamentDate + " | Start Date: " + startDate + " | End Date: " + endDate + " | Within Range: " + isWithinRange);
+            // Logique pour vérifier si la date est dans la plage
+            boolean isWithinRange = (start == null || !tournamentStartDate.isBefore(start)) &&
+                    (end == null || !tournamentStartDate.isAfter(end));
+
             return isWithinRange;
         } catch (DateTimeParseException e) {
             System.out.println("Date parsing error: " + e.getMessage());
@@ -345,9 +353,7 @@ public class GetData {
     }
 
     public List<SinglePokemonStats> getUsageData(List<Tournament> tournaments) {
-        // Lire les données du fichier JSON combiné
-        Gson gson = new Gson();
-        Type tournamentType = new TypeToken<Tournament>(){}.getType();
+
         List<SinglePokemonStats> pokemonUsage = new ArrayList<>();
 
         for (Tournament tournament : tournaments) {
@@ -358,28 +364,28 @@ public class GetData {
                     // Ajouter le pokemon à la liste si il n'est pas déjà dedans sinon augmenter son usage
                     boolean found = false;
                     for (SinglePokemonStats singlePokemonStats : pokemonUsage) {
-                        if (singlePokemonStats.getName().equals(pokemon.getName())) {
+                        if (singlePokemonStats.getPokemon().getName().equals(pokemon.getName())) {
                             singlePokemonStats.setUsage(singlePokemonStats.getUsage() + 1);
                             found = true;
 
                             // Ajouter les autres informations du pokemon
-                            LinkedHashMap<String, Integer> tera = singlePokemonStats.getTera();
+                            LinkedHashMap<String, Integer> tera = singlePokemonStats.getPokemon().getTera();
                             tera.put(pokemon.getType(), tera.getOrDefault(pokemon.getType(), 0) + 1);
-                            singlePokemonStats.setTera(tera);
+                            singlePokemonStats.getPokemon().setTera(tera);
 
-                            LinkedHashMap<String, Integer> item = singlePokemonStats.getItem();
+                            LinkedHashMap<String, Integer> item = singlePokemonStats.getPokemon().getItem();
                             item.put(pokemon.getItem(), item.getOrDefault(pokemon.getItem(), 0) + 1);
-                            singlePokemonStats.setItem(item);
+                            singlePokemonStats.getPokemon().setItem(item);
 
-                            LinkedHashMap<String, Integer> ability = singlePokemonStats.getAbility();
+                            LinkedHashMap<String, Integer> ability = singlePokemonStats.getPokemon().getAbility();
                             ability.put(pokemon.getAbility(), ability.getOrDefault(pokemon.getAbility(), 0) + 1);
-                            singlePokemonStats.setAbility(ability);
+                            singlePokemonStats.getPokemon().setAbility(ability);
 
-                            LinkedHashMap<String, Integer> moves = singlePokemonStats.getMoves();
+                            LinkedHashMap<String, Integer> moves = singlePokemonStats.getPokemon().getMoves();
                             for (String move : pokemon.getMoves()) {
                                 moves.put(move, moves.getOrDefault(move, 0) + 1);
                             }
-                            singlePokemonStats.setMoves(moves);
+                            singlePokemonStats.getPokemon().setMoves(moves);
                             break;
                         }
                     }
@@ -394,13 +400,80 @@ public class GetData {
                         for (String move : pokemon.getMoves()) {
                             moves.put(move, 1);
                         }
-                        pokemonUsage.add(new SinglePokemonStats(pokemon.getName(), 1, tera, item, ability, moves));
+                        pokemonUsage.add(new SinglePokemonStats(1, new PokemonUsage(pokemon.getName(), tera, item, ability, moves)));
                     }
                 }
             }
         }
 
         return pokemonUsage;
+    }
+
+
+    public List<MultiplePokemonStats> getUsageDataForMultiplePokemon(int num, List<Tournament> tournaments) {
+        // Map pour stocker les combinaisons et leur fréquence d'utilisation
+        Map<Set<String>, MultiplePokemonStats> combinationUsageMap = new HashMap<>();
+
+        // Parcourir chaque tournoi et joueur pour générer les combinaisons
+        for (Tournament tournament : tournaments) {
+            for (Player player : tournament.getPlayers()) {
+                Team team = player.getTeam();
+                List<Pokemon> pokemons = team.getPokemons();
+
+                // Générer et traiter toutes les combinaisons possibles
+                List<Set<String>> combinations = generateCombinations(pokemons, num);
+                for (Set<String> combination : combinations) {
+                    combinationUsageMap.putIfAbsent(combination, new MultiplePokemonStats(0, new Combination(num, new ArrayList<>(combination)), new ArrayList<>()));
+                    combinationUsageMap.get(combination).incrementUsage();
+                }
+            }
+        }
+
+        // Retourner les statistiques sous forme de liste
+        return new ArrayList<>(combinationUsageMap.values());
+    }
+
+    // Génération des combinaisons possibles et tri automatique
+    private List<Set<String>> generateCombinations(List<Pokemon> pokemons, int num) {
+        List<Set<String>> result = new ArrayList<>();
+        generateCombinationsRecursive(pokemons, num, 0, new LinkedHashSet<>(), result);
+        return result;
+    }
+
+    // Fonction récursive pour générer les combinaisons
+    private void generateCombinationsRecursive(List<Pokemon> pokemons, int num, int start, Set<String> current, List<Set<String>> result) {
+        if (current.size() == num) {
+            result.add(new TreeSet<>(current));  // Tri alphabétique et ajout au résultat
+            return;
+        }
+
+        for (int i = start; i < pokemons.size(); i++) {
+            current.add(pokemons.get(i).getName());
+            generateCombinationsRecursive(pokemons, num, i + 1, current, result);
+            current.remove(pokemons.get(i).getName());  // Backtrack
+        }
+    }
+
+    private void mergePokemonUsage(PokemonUsage existing, PokemonUsage newUsage) {
+        // Merge Tera Types
+        for (Map.Entry<String, Integer> entry : newUsage.getTera().entrySet()) {
+            existing.getTera().put(entry.getKey(), existing.getTera().getOrDefault(entry.getKey(), 0) + entry.getValue());
+        }
+
+        // Merge Items
+        for (Map.Entry<String, Integer> entry : newUsage.getItem().entrySet()) {
+            existing.getItem().put(entry.getKey(), existing.getItem().getOrDefault(entry.getKey(), 0) + entry.getValue());
+        }
+
+        // Merge Abilities
+        for (Map.Entry<String, Integer> entry : newUsage.getAbility().entrySet()) {
+            existing.getAbility().put(entry.getKey(), existing.getAbility().getOrDefault(entry.getKey(), 0) + entry.getValue());
+        }
+
+        // Merge Moves
+        for (Map.Entry<String, Integer> entry : newUsage.getMoves().entrySet()) {
+            existing.getMoves().put(entry.getKey(), existing.getMoves().getOrDefault(entry.getKey(), 0) + entry.getValue());
+        }
     }
 
     // Méthode pour vérifier si un Pokémon dans l'équipe correspond aux critères
