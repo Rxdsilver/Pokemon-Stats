@@ -186,7 +186,6 @@ public class TournamentController {
         for (Tournament tournament : tournaments) {
             // Ajouter les joueurs du tournoi dont l'équipe correspond aux critères
             for (Player player : tournament.getPlayers()) {
-
                 if (new GetData().doesTeamMatchCriteria(player.getTeam(), criteria.getWinratePokemons())) {
                     players.add(player);
                     // System.out.println(player.getName()+" in "+tournament.getName());
@@ -202,6 +201,9 @@ public class TournamentController {
                         if (pairing.getPlayer1().equals(player.getName())) {
                             // System.out.println("Team matches with "+pairing.getPlayer1());
                             Team oppTeam = new GetData().searchTeamWithPlayerName(tournament.getPlayers(), pairing.getPlayer2());
+                            if (oppTeam == null) {
+                                continue;
+                            }
                             if (new GetData().doesTeamMatchCriteria(oppTeam, criteria.getOpposingPokemons())) {
                                 System.out.println(pairing.getPlayer1()+ " vs. "+pairing.getPlayer2());
                                 totalMatches++;
@@ -212,6 +214,9 @@ public class TournamentController {
                         } else if (pairing.getPlayer2().equals(player.getName())) {
                             // System.out.println("Team matches with "+pairing.getPlayer2());
                             Team oppTeam = new GetData().searchTeamWithPlayerName(tournament.getPlayers(), pairing.getPlayer1());
+                            if (oppTeam == null) {
+                                continue;
+                            }
                             if (new GetData().doesTeamMatchCriteria(oppTeam, criteria.getOpposingPokemons())) {
                                 System.out.println(pairing.getPlayer2()+ " vs. "+pairing.getPlayer1());
                                 totalMatches++;

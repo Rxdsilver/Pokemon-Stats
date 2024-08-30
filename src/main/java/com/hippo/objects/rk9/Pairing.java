@@ -27,6 +27,11 @@ public class Pairing {
             return "Chuppa Cross [US]";
         }
 
+        // Hotfix for "O'Bryant Vison"
+        if (player1.equals("O'Bryant Vison")) {
+            return "O'Bryant Vinson [US]";
+        }
+
         return player1;
     }
 
@@ -39,6 +44,11 @@ public class Pairing {
         // Hotfix for "Chuppa Cross IV [US]"
         if (player2.equals("Chuppa Cross IV [US]")) {
             return "Chuppa Cross [US]";
+        }
+
+        // Hotfix for "O'Bryant Vison"
+        if (player2.equals("O'Bryant Vison")) {
+            return "O'Bryant Vinson [US]";
         }
 
         return player2;
