@@ -425,12 +425,59 @@ public class GetData {
                 for (Set<String> combination : combinations) {
                     combinationUsageMap.putIfAbsent(combination, new MultiplePokemonStats(0, new Combination(num, new ArrayList<>(combination)), new ArrayList<>()));
                     combinationUsageMap.get(combination).incrementUsage();
+
+                    updatePokemonUsageStats(combination, pokemons, combinationUsageMap.get(combination));
                 }
             }
         }
 
         // Retourner les statistiques sous forme de liste
         return new ArrayList<>(combinationUsageMap.values());
+    }
+
+    private void updatePokemonUsageStats(Set<String> combination, List<Pokemon> teamPokemons, MultiplePokemonStats stats) {
+        // Parcourir chaque Pokémon de la combinaison
+        for (String pokemonName : combination) {
+            // Trouver le Pokémon correspondant dans l'équipe
+            Pokemon matchingPokemon = teamPokemons.stream()
+                    .filter(p -> p.getName().equals(pokemonName))
+                    .findFirst().orElse(null);
+
+            if (matchingPokemon != null) {
+                // Rechercher si le Pokémon a déjà des stats enregistrées
+                PokemonUsage pokemonUsage = stats.getPokemons().stream()
+                        .filter(pu -> pu.getName().equals(pokemonName))
+                        .findFirst().orElse(null);
+
+                if (pokemonUsage == null) {
+                    // Si le Pokémon n'a pas encore de stats, les ajouter
+                    pokemonUsage = new PokemonUsage(pokemonName, new LinkedHashMap<>(), new LinkedHashMap<>(), new LinkedHashMap<>(), new LinkedHashMap<>());
+                    stats.getPokemons().add(pokemonUsage);
+                }
+
+                // Mettre à jour les statistiques du Pokémon
+                updatePokemonUsage(matchingPokemon, pokemonUsage);
+            }
+        }
+    }
+
+    private void updatePokemonUsage(Pokemon pokemon, PokemonUsage usage) {
+        // Mettre à jour les tera types
+        String teraType = pokemon.getType();
+        usage.getTera().put(teraType, usage.getTera().getOrDefault(teraType, 0) + 1);
+
+        // Mettre à jour les items
+        String item = pokemon.getItem();
+        usage.getItem().put(item, usage.getItem().getOrDefault(item, 0) + 1);
+
+        // Mettre à jour les abilities
+        String ability = pokemon.getAbility();
+        usage.getAbility().put(ability, usage.getAbility().getOrDefault(ability, 0) + 1);
+
+        // Mettre à jour les moves
+        for (String move : pokemon.getMoves()) {
+            usage.getMoves().put(move, usage.getMoves().getOrDefault(move, 0) + 1);
+        }
     }
 
     // Génération des combinaisons possibles et tri automatique
