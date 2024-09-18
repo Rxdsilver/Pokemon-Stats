@@ -27,6 +27,7 @@ public class TournamentController {
 
     @PostMapping("/tournaments")
     public ResponseEntity<Map<String, Object>> createTournament(@RequestBody String rk9) {
+
         // Vérifie si un tournoi avec le même rk9 existe déjà
         Optional<Tournament> existingTournament = tournamentRepository.findByRk9(rk9);
         if (existingTournament.isPresent()) {
@@ -114,14 +115,8 @@ public class TournamentController {
 
     @GetMapping("/usage")
     public ResponseEntity<List<SinglePokemonStats>> getUsage(
-            @RequestParam(required = false) String name,
             @RequestBody(required = false) DateRange dateRange){
-        List<Tournament> tournaments;
-        if (name != null) {
-            tournaments = tournamentRepository.findByName(name);
-        } else {
-            tournaments = tournamentRepository.findAll();
-        }
+        List<Tournament> tournaments = tournamentRepository.findAll();
 
         if (dateRange != null) {
             String startDate = dateRange.getStartDate();
@@ -130,8 +125,6 @@ public class TournamentController {
             tournaments = tournaments.stream()
                     .filter(t -> new GetData().isWithinDateRange(t.getStartDate(), startDate, endDate))
                     .collect(Collectors.toList());
-        } else {
-            tournaments = tournamentRepository.findAll();
         }
 
 

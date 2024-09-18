@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class GetData {
     public static List<Player> getPlayers(String url) {
 
-
         String fullURL = "https://rk9.gg/roster/" + url;
 
 
@@ -38,6 +37,7 @@ public class GetData {
             Document doc = Jsoup.connect(fullURL).maxBodySize(0).get();
             // Ecrire tout le contenu de l'url dans un fichier html
             // Files.write(Paths.get("roster.html"), doc.html().getBytes());
+            // Files.write(Paths.get("roster.html"), doc.html().getBytes());x
 
             Elements rows = doc.select("table tbody tr");
             int count = 0;
@@ -48,6 +48,7 @@ public class GetData {
                 String name = cols.get(1).text() + " " + cols.get(2).text() + " [" + cols.get(3).text()+"]";
                 try {
                     String teamUrl = cols.select("a").attr("href");
+                    // System.out.println("DEBUG: Getting team from: " + teamUrl);
                     team = getTeam(teamUrl);
                     if (cols.get(4).text().equalsIgnoreCase("masters")){
                         players.add(new Player(name, team));
@@ -55,8 +56,9 @@ public class GetData {
                     }
                 } catch (Exception e) {
                     System.out.println(count + " players added.");
-                    System.out.println("Error: " + e + " for player " + name);
-                    System.out.println("Row: \n"+row.text());
+                    System.out.println("Error for player " + name);
+                    System.out.println("Row: "+row.text());
+                    e.printStackTrace();
                 }
 
             }
@@ -73,8 +75,8 @@ public class GetData {
             }
             Document doc = Jsoup.connect(url).get();
             Elements pokemonDivs = doc.select("div#lang-EN div.pokemon.bg-light-green-50.p-3");
+
             List<Pokemon> pokemons = new ArrayList<>();
-            int index = 0;
             for (Element pokemonDiv : pokemonDivs) {
                 // Extraire tout le texte brut du div
                 String wholeText = pokemonDiv.wholeText();
@@ -94,10 +96,11 @@ public class GetData {
                     moves.add(moveElement.text());
                 }
 
-                pokemons.set(index++, new Pokemon(name, type, ability, item, moves));
+                pokemons.add(new Pokemon(name, type, ability, item, moves));
             }
             return new Team(pokemons);
         } catch (IOException e) {
+            System.out.println("Error: " + e);
             throw new RuntimeException(e);
         }
     }
