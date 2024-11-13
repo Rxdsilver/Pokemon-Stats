@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface TournamentRepository extends MongoRepository<Tournament, String>{
     List<Tournament> findByName(String name);
     Optional<Tournament> findByRk9(String rk9);
+
+    Optional<Tournament> deleteByRk9(String rk9);
 }

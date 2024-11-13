@@ -7,7 +7,7 @@ import java.util.List;
 public class HeadToHeadSearchCriteria {
 
     private DateRange dates;
-    List<Pokemon> winratePokemons;
+    List<Pokemon> pokemons;
     List<Pokemon> opposingPokemons;
 
     public DateRange getDates() {
@@ -18,12 +18,12 @@ public class HeadToHeadSearchCriteria {
         this.dates = dates;
     }
 
-    public List<Pokemon> getWinratePokemons() {
-        return winratePokemons;
+    public List<Pokemon> getPokemons() {
+        return pokemons;
     }
 
-    public void setWinratePokemons(List<Pokemon> winratePokemons) {
-        this.winratePokemons = winratePokemons;
+    public void setWinratePokemons(List<Pokemon> setWinratePokemons) {
+        this.pokemons = pokemons;
     }
 
     public List<Pokemon> getOpposingPokemons() {

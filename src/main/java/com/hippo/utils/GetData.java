@@ -219,7 +219,7 @@ public class GetData {
             String endDateStr = parts[0] + " " + days[1];
 
             SimpleDateFormat formatter = new SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH);
-            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
 
             Date startDate = formatter.parse(startDateStr);
             Date endDate = formatter.parse(endDateStr);
@@ -252,7 +252,7 @@ public class GetData {
     public boolean isWithinDateRange(String tournamentDate, String startDate, String endDate) {
         try {
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDate tournamentStartDate = LocalDate.parse(tournamentDate, formatter);
             LocalDate start = startDate != null ? LocalDate.parse(startDate, formatter) : null;
             LocalDate end = endDate != null ? LocalDate.parse(endDate, formatter) : null;
@@ -273,21 +273,29 @@ public class GetData {
         return players.stream()
                 .filter(player -> {
                     Team team = player.getTeam();
-                    boolean matches = true;
-
-                    for (Pokemon criterion : criteriaPokemons) {
-                        boolean foundPokemon = team.getPokemons().stream().anyMatch(pokemon -> pokemon.getName().equals(criterion.getName()) &&
-                                (criterion.getType() == null || criterion.getType().equals(pokemon.getType())) &&
-                                (criterion.getAbility() == null || criterion.getAbility().equals(pokemon.getAbility())) &&
-                                (criterion.getItem() == null || criterion.getItem().equals(pokemon.getItem())) &&
-                                (criterion.getMoves() == null || pokemon.getMoves() != null && pokemon.getMoves().containsAll(criterion.getMoves())));
-
-                        if (!foundPokemon) {
-                            matches = false;
-                            break;
-                        }
-                    }
-                    return matches;
+                    return criteriaPokemons.stream().allMatch(criteriaPokemon -> {
+                        return team.getPokemons().stream().anyMatch(teamPokemon -> {
+                            boolean matches = true;
+                            if (criteriaPokemon.getName() != null) {
+                                matches &= criteriaPokemon.getName().equals(teamPokemon.getName());
+                            }
+                            if (criteriaPokemon.getType() != null) {
+                                matches &= criteriaPokemon.getType().equals(teamPokemon.getType());
+                            }
+                            if (criteriaPokemon.getAbility() != null) {
+                                matches &= criteriaPokemon.getAbility().equals(teamPokemon.getAbility());
+                            }
+                            if (criteriaPokemon.getItem() != null) {
+                                matches &= criteriaPokemon.getItem().equals(teamPokemon.getItem());
+                            }
+                            if (criteriaPokemon.getMoves() != null && !criteriaPokemon.getMoves().isEmpty()) {
+                                matches &= criteriaPokemon.getMoves().stream()
+                                        .filter(Objects::nonNull)
+                                        .allMatch(move -> teamPokemon.getMoves().contains(move));
+                            }
+                            return matches;
+                        });
+                    });
                 })
                 .collect(Collectors.toList());
     }
@@ -300,38 +308,30 @@ public class GetData {
                 if (pokemon.getName().equals(teamPokemon.getName())) {
                     found = true;
 
-                    // Vérifier si le type correspond
                     if (pokemon.getType() != null && !pokemon.getType().equals(teamPokemon.getType())) {
-                        // System.out.println("Type mismatch: " + pokemon.getType() + " != " + teamPokemon.getType());
                         found = false;
                         break;
                     }
 
-                    // Vérifier si l'ability correspond
                     if (pokemon.getAbility() != null && !pokemon.getAbility().equals(teamPokemon.getAbility())) {
-                        // System.out.println("Ability mismatch: " + pokemon.getAbility() + " != " + teamPokemon.getAbility());
                         found = false;
                         break;
                     }
 
-                    // Vérifier si l'item correspond
                     if (pokemon.getItem() != null && !pokemon.getItem().equals(teamPokemon.getItem())) {
-                        // System.out.println("Item mismatch: " + pokemon.getItem() + " != " + teamPokemon.getItem());
                         found = false;
                         break;
                     }
 
-                    // Vérifier si les moves sont inclus dans le Pokémon de l'équipe
-                    if (pokemon.getMoves() != null && !new HashSet<>(teamPokemon.getMoves()).containsAll(pokemon.getMoves())) {
-                        // System.out.println("Moves mismatch: " + pokemon.getMoves() + " not in " + teamPokemon.getMoves());
-                        found = false;
-                        break;
+                    if (pokemon.getMoves() != null && !pokemon.getMoves().isEmpty()) {
+                        if (!pokemon.getMoves().stream()
+                                .filter(Objects::nonNull)
+                                .allMatch(move -> teamPokemon.getMoves().contains(move))) {
+                            found = false;
+                            break;
+                        }
                     }
-
-
                 }
-                // Vérifier si le type correspond
-
             }
             if (!found) {
                 return false;
